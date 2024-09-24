@@ -1,0 +1,29 @@
+{
+    "debug": true,
+    "source": "local",
+    "handlers": [
+        {
+            "name": "Add Config",
+            "match": {
+                "path": "/addconfig",
+                "body": {
+                    "name": "*",
+                    "match": "*",
+                    "function": "*"
+                }
+            },
+            "function": "addConfig"
+        },
+        {
+            "name": "Add Handler",
+            "match": {
+                "path": "/addhandler",
+                "body": {
+                    "code": "*",
+                    "name": "*"
+                }
+            },
+            "function": "addHandler"
+        }
+    ]
+}

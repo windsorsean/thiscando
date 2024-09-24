@@ -1,0 +1,15 @@
+{
+    "source": {
+      "include": ["index.js"],
+      "includePattern": ".+\\.js(doc|x)?$"
+    },
+    "plugins": [],
+    "templates": {
+      "cleverLinks": false,
+      "monospaceLinks": false
+    },
+    "opts": {
+      "destination": "./docs",
+      "recurse": true
+    }
+  }
