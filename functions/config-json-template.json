@@ -1,0 +1,55 @@
+{
+  // Debug mode: Set to true to enable debug logging
+  "debug": true,
+
+  // Configuration source: Can be "local" or "firestore"
+  // - "local": Use this config.json file for configuration
+  // - "firestore": Load configuration from Firestore database
+  "source": "local",
+
+  // Array of handler configurations
+  "handlers": [
+    {
+      // Descriptive name for the handler
+      "name": "Example Handler",
+
+      // Matching criteria for incoming requests
+      "match": {
+        // URL path to match (case-insensitive)
+        "path": "/example",
+
+        // Request body structure to match
+        "body": {
+          // Use "*" as a wildcard to match any value
+          "requiredField": "*",
+          // Specify exact values to match
+          "specificValue": "example"
+        },
+
+        // Optional: URL parameters to match
+        "params": {
+          "optionalParam": "*"
+        }
+      },
+
+      // Name of the handler function to execute
+      // This should match the exported function name in your handler file
+      "function": "handleExample"
+    },
+
+    // You can add multiple handler configurations
+    {
+      "name": "Another Handler",
+      "match": {
+        "path": "/another-example",
+        "body": {
+          "field1": "*",
+          "field2": "*"
+        }
+      },
+      "function": "handleAnotherExample"
+    }
+
+    // Add more handler configurations as needed...
+  ]
+}
