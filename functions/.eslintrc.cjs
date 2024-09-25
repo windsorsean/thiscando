@@ -36,6 +36,7 @@ module.exports = {
         'node_modules/',
         'dist/',
         '**/docs/',
-        '**/*.test.js'
+        '**/*.test.js',
+        '*template*'
     ]
 };
