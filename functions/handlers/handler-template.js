@@ -16,8 +16,9 @@ const db = getFirestore();
  * @async
  * @param {functions.https.Request} req - The Firebase Functions request object.
  * @param {functions.Response} res - The Firebase Functions response object.
+ * @param {object} [vars={}] - Optional variables passed from config.
  */
-export async function handleTemplateName(req, res) {
+export async function handleTemplateName(req, res, vars = {}) {
     try {
         // Log incoming request data
         logger({ method: req.method, body: req.body, query: req.query }, 'DEBUG');

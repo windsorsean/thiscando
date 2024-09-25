@@ -24,6 +24,17 @@
                 }
             },
             "function": "addHandler"
+        },
+        {
+            "name": "Hello World",
+            "match": {
+                "path": "/helloworld",
+                "params": { "data":  "*" }
+            },
+            "function": "helloWorld",
+            "vars": {
+                "animals": ["dog", "cat"]
+            }
         }
     ]
 }

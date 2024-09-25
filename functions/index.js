@@ -224,7 +224,7 @@ async function handleRoute(route, req, res) {
     try {
         const handler = await loadHandler(route.function);
         if (typeof handler === 'function') {
-            await handler(req, res);
+            await handler(req, res, route.vars ?? {});
         } else {
             throw new Error(`Handler function for ${route.function} is not a valid function`);
         }

@@ -8,8 +8,9 @@ const db = getFirestore();
  * @async
  * @param {functions.https.Request} req - The Firebase Functions request object.
  * @param {functions.Response} res - The Firebase Functions response object.
+ * @param {object} [vars={}] - Optional variables passed from config.
  */
-export async function handleAddHandler(req, res) {
+export async function handleAddHandler(req, res, vars={}) {
     // Validate javascript code
     try {
         esprima.parseModule(req.body.code);

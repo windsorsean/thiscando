@@ -34,7 +34,13 @@
 
       // Name of the handler function to execute
       // This should match the exported function name in your handler file
-      "function": "handleExample"
+      "function": "handleExample",
+
+      // Optional, fixed variables that are passed to the handler function
+      "vars": {
+        "var1": "example_string",
+        "var2": ["example", "array"]
+      }
     },
 
     // You can add multiple handler configurations
