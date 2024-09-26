@@ -1,6 +1,6 @@
 {
-    "debug": true,
-    "source": "local",
+    "debug": false,
+    "source": "firestore",
     "handlers": [
         {
             "name": "Add Config",
