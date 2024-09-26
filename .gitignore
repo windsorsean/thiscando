@@ -69,5 +69,5 @@ functions/coverage/
 ui-debug.log
 
 # Local items
-.local/
+.local*/
 *.test*
