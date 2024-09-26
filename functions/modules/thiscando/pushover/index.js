@@ -28,13 +28,13 @@ export default async function send(options) {
     }, {});
 
     // Add token/userkey if needed
-    options.token = options.token ?? TOKEN;
-    options.user = options.user ?? USER_KEY;
+    params.token = params.token ?? TOKEN;
+    params.user = params.user ?? USER_KEY;
 
     // Throw error if missing required params
-    if (!options.token) { throw new Error('missing token'); }
-    if (!options.user) { throw new Error('missing user key'); }
-    if (!options.message) { throw new Error('missing message'); }
+    if (!params.token) { throw new Error('missing token'); }
+    if (!params.user) { throw new Error('missing user key'); }
+    if (!params.message) { throw new Error('missing message'); }
 
     // Make pushover call
     const response = await axios.post(PUSHOVER_API_URL, params);

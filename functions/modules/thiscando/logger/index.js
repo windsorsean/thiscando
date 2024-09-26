@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const logFile = path.join(__dirname, '..', 'thiscando.log');
+const logFile = path.join(__dirname, '..', '..', '..', 'logger.log');
 const IS_LOCAL = !('GAE_RUNTIME' in process.env);
 
 /**

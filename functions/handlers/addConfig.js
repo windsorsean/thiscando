@@ -7,9 +7,10 @@ const db = getFirestore();
  * @async
  * @param {functions.https.Request} req - The Firebase Functions request object.
  * @param {functions.Response} res - The Firebase Functions response object.
+ * @param {object} utils - Buit in utilities available to handlers.
  * @param {object} [vars={}] - Optional variables passed from config.
  */
-export async function handleAddConfig(req, res, vars={}) {
+export async function handleAddConfig(req, res, utils, vars={}) {
     // Get existing config
     const config = (await db.collection('config').doc('handlers').get()).data() || {};
 

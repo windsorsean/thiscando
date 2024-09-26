@@ -1,12 +1,12 @@
 import { onRequest } from 'firebase-functions/v2/https';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import fs from 'fs/promises';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import os from 'os';
 import dotenv from 'dotenv';
-import logger from './utils/logger.js';
+import utils, { logger } from 'thiscando';
 
 dotenv.config();
 initializeApp();
@@ -27,12 +27,13 @@ const tempDir = path.join(os.tmpdir(), 'thiscando-handlers');
  * @throws {Error} If there's an issue loading the configuration or creating the temp directory.
  */
 async function init() {
-    await fs.mkdir(tempDir, { recursive: true });
+    fs.mkdirSync(tempDir, { recursive: true });
+    logger({ tempDir }, 'DEBUG');
     let config = {};
 
     // Load the local config file
     try {
-        const configFile = await fs.readFile(path.join(__dirname, 'config.json'), 'utf8');
+        const configFile = fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8');
         config = JSON.parse(configFile);
     } catch (error) {
         logger(error, 'ERROR');
@@ -83,21 +84,23 @@ async function init() {
  */
 async function loadHandler(functionName) {
     const localPath = path.join(__dirname, 'handlers', `${functionName}.js`);
-    logger({ localPath }, 'DEBUG');
-    try {
-        // Check if the file exists locally
-        await fs.access(localPath);
+
+    // Check if the file exists locally
+    if (fs.existsSync(localPath)) {
+        logger({ localPath }, 'DEBUG');
         const module = await import(localPath);
         return module[`handle${functionName.charAt(0).toUpperCase() + functionName.slice(1)}`];
-    } catch (error) {
+    } else {
         // If the file doesn't exist locally, load from Firestore
+        const tempPath = path.join(tempDir, `${functionName}.mjs`);
+        logger({ tempPath }, 'DEBUG');
         const handlerDoc = await db.collection('handlers').doc(functionName).get();
         if (!handlerDoc.exists) {
             throw new Error(`Handler ${functionName} not found in Firestore`);
         }
         const handlerData = handlerDoc.data();
-        const tempPath = path.join(tempDir, `${functionName}.mjs`);
-        await fs.writeFile(tempPath, JSON.parse(handlerData.code));
+        logger({ handlerData }, 'DEBUG');
+        fs.writeFileSync(tempPath, JSON.parse(handlerData.code), 'utf8');
         const module = await import(tempPath);
         logger(`module loaded: ${tempPath}`, 'DEBUG');
         return module[`handle${functionName.charAt(0).toUpperCase() + functionName.slice(1)}`];
@@ -224,7 +227,7 @@ async function handleRoute(route, req, res) {
     try {
         const handler = await loadHandler(route.function);
         if (typeof handler === 'function') {
-            await handler(req, res, route.vars ?? {});
+            await handler(req, res, utils, route.vars ?? {});
         } else {
             throw new Error(`Handler function for ${route.function} is not a valid function`);
         }

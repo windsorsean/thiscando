@@ -1,0 +1,24 @@
+{
+  "name": "thiscando",
+  "version": "1.0.0",
+  "description": "Helper modules for the thiscando package.",
+  "main": "./main/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "thiscando"
+  ],
+  "author": "Sean Hart",
+  "license": "ISC",
+  "exports": {
+    "./logger": "./logger/index.js",
+    "./pushover": "./pushover/index.js",
+    "./axiosErr": "./axiosErr/index.js",
+    ".": "./main/index.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.7"
+  }
+}

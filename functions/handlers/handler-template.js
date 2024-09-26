@@ -5,7 +5,6 @@
  */
 
 import { getFirestore } from 'firebase-admin/firestore';
-import logger from '../utils/logger.js';
 
 // Initialize Firestore database
 const db = getFirestore();
@@ -16,9 +15,13 @@ const db = getFirestore();
  * @async
  * @param {functions.https.Request} req - The Firebase Functions request object.
  * @param {functions.Response} res - The Firebase Functions response object.
+ * @param {object} utils - Buit in utilities available to handlers.
  * @param {object} [vars={}] - Optional variables passed from config.
  */
-export async function handleTemplateName(req, res, vars = {}) {
+export async function handleTemplateName(req, res, utils, vars = {}) {
+    // Utilities available to be used inside handlers
+    const { logger, pushover, axiosErr } = utils;
+
     try {
         // Log incoming request data
         logger({ method: req.method, body: req.body, query: req.query }, 'DEBUG');
