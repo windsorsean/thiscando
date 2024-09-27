@@ -28,7 +28,7 @@
         {
             "name": "Hello World",
             "match": {
-                "path": "/helloworld",
+                "path": "/helloworld/*",
                 "params": { "data":  "*" }
             },
             "function": "helloWorld",

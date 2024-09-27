@@ -115,17 +115,11 @@ async function loadHandler(functionName) {
 function matchRoute(req) {
     logger({ path: req.path }, 'DEBUG');
     return handlerConfig.find((route) => {
-        const path = req.path.replace(/^\/[^/]+\//, '/');
-        // Ensure 'path' is present and not root
-        if (!route.match?.path || route.match?.path.toLowerCase() === '/') {
-            return false;
-        }
-
         // Check if all properties in 'match' are satisfied
         return Object.entries(route.match).every(([key, value]) => {
             switch (key.toLowerCase()) {
             case 'path':
-                return path.toLowerCase() === value.toLowerCase();
+                return matchPath(req.path, value);
             case 'body':
                 return matchBody(req.body, value);
             case 'params':
@@ -136,6 +130,32 @@ function matchRoute(req) {
             }
         });
     });
+}
+
+/**
+ * Matches the path of an incoming request against a pattern.
+ * @param {string} reqPath - The path of the incoming request.
+ * @param {string} matchPath - The pattern to match, which can end with '*' for wildcard matching.
+ * @return {boolean} True if the request path matches the pattern; otherwise, false.
+ */
+function matchPath(reqPath, matchPath) {
+    // Split paths into their components, ignore starting/trailing slash
+    const splitReqPath = reqPath.replace(/^\/|\/$/g, '').toLowerCase().split('/');
+    const splitMatchPath = matchPath.replace(/^\/|\/$/g, '').toLowerCase().split('/');
+
+    // Reject if either don't contain a path
+    if (!splitReqPath[0] || !splitMatchPath[0]) { return false; }
+
+    // Reject if not matched on first or second request path (accounts for functions deployed on firebase custom domain)
+    if ((splitReqPath[0] != splitMatchPath[0]) && (splitReqPath[1] != splitMatchPath[0])) { return false; }
+
+    // Check for extra paths and reject unless * wildcard
+    if (splitMatchPath.slice(-1)[0] != '*') {
+        if (splitReqPath.length > 2) { return false; }
+        if ((splitReqPath.length === 2) && (splitReqPath[1] != splitMatchPath[0])) { return false; }
+    }
+
+    return true;
 }
 
 /**
@@ -242,7 +262,14 @@ async function handleRoute(route, req, res) {
  */
 export const handler = onRequest({ region: 'northamerica-northeast1' }, async (req, res) => {
     await init();
-    logger({ request: { method: req.method, body: req.body, query: req.query, headers: req.headers } }, 'DEBUG');
+    logger({ request: {
+        method: req.method,
+        path: req.path,
+        hostname: req.hostname,
+        body: req.body,
+        query: req.query,
+        headers: req.headers
+    } }, 'DEBUG');
     try {
         const route = matchRoute(req);
         if (route) {

@@ -10,6 +10,7 @@ export async function handleHelloWorld(req, res, utils, vars = {}) {
     res.send({
         message: 'Hello world!',
         data: req.query ?? 'none',
+        path: req.path,
         vars
     });
 }

@@ -15,8 +15,8 @@
 
       // Matching criteria for incoming requests
       "match": {
-        // URL path to match (case-insensitive)
-        "path": "/example",
+        // URL path to match (case-insensitive, optional wildcard to allow subpaths)
+        "path": "/example/*",
 
         // Request body structure to match
         "body": {
