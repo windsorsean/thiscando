@@ -28,7 +28,7 @@ const tempDir = path.join(os.tmpdir(), 'thiscando-handlers');
  */
 async function init() {
     fs.mkdirSync(tempDir, { recursive: true });
-    logger({ tempDir }, 'DEBUG');
+    logger({ tempDir }, 'INFO');
     let config = {};
 
     // Load the local config file
@@ -42,6 +42,7 @@ async function init() {
 
     // If config file says to look at firestore, reload all config settings from firestore
     if (config.source === 'firestore') {
+        logger('Loading config from firestore.', 'INFO');
         const configFirestore = (await db.collection('config').doc('settings').get()).data();
         if (configFirestore.source === 'local') {
             config.source = 'local';
@@ -53,7 +54,7 @@ async function init() {
     // Turn on debug if needed
     process.env.DEBUG_ENABLED = config.debug ? 'true' : 'false';
 
-    logger({ config }, 'DEBUG');
+    logger(config, 'DEBUG');
 
     switch (config.source) {
     case 'local':
@@ -72,7 +73,7 @@ async function init() {
         process.exit(1);
     }
 
-    logger({ handlerConfig }, 'DEBUG');
+    logger(handlerConfig, 'DEBUG');
 }
 
 /**
