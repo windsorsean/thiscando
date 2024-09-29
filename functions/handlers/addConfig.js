@@ -20,7 +20,7 @@ export async function handleAddConfig(req, res, utils, vars={}) {
 
     db.collection('config').doc('handlers').set(config);
 
-    // Implement VOIP SMS logic here
+    // Return success
     res.send({
         msg: 'Config imported.'
     });
