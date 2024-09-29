@@ -54,7 +54,7 @@ async function init() {
     // Turn on debug if needed
     process.env.DEBUG_ENABLED = config.debug ? 'true' : 'false';
 
-    logger(config, 'DEBUG');
+    logger({ config }, 'DEBUG');
 
     switch (config.source) {
     case 'local':
@@ -73,7 +73,7 @@ async function init() {
         process.exit(1);
     }
 
-    logger(handlerConfig, 'DEBUG');
+    logger({ handlerConfig }, 'DEBUG');
 }
 
 /**
@@ -261,7 +261,10 @@ async function handleRoute(route, req, res) {
 /**
  * Main handler for incoming HTTP requests.
  */
-export const handler = onRequest({ region: 'northamerica-northeast1' }, async (req, res) => {
+export const handler = onRequest({
+    region: 'northamerica-northeast1',
+    cors: true
+}, async (req, res) => {
     await init();
     logger({ request: {
         method: req.method,

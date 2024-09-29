@@ -10,7 +10,7 @@
   "scripts": {
     "lint": "eslint .",
     "serve": "cd .. && firebase emulators:start --only functions",
-    "serve-db": "cd .. && firebase emulators:start --export-on-exit=./.local --import=./.local",
+    "serve-db": "cd .. && firebase emulators:start --export-on-exit=./.local/firestore --import=./.local/firestore",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "deploy": "cd .. && firebase deploy --only functions",

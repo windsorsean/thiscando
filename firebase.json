@@ -43,9 +43,13 @@
         "function": "handler"
       },
       {
-        "source": "**",
+        "source": "/",
         "destination": "/index.html"
-      }
+      },
+      {
+        "source": "/admin",
+        "destination": "/admin.html"
+      }      
     ]
   }
 }

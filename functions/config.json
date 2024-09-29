@@ -9,7 +9,8 @@
                 "body": {
                     "name": "*",
                     "match": "*",
-                    "function": "*"
+                    "function": "*",
+                    "auth_code": "AdminSecretCode"
                 }
             },
             "function": "addConfig"
@@ -20,10 +21,32 @@
                 "path": "/addhandler",
                 "body": {
                     "code": "*",
-                    "name": "*"
+                    "name": "*",
+                    "auth_code": "AdminSecretCode"
                 }
             },
             "function": "addHandler"
+        },
+        {
+            "name": "Load Handler",
+            "match": {
+                "path": "/loadhandler",
+                "body": {
+                    "name": "*",
+                    "auth_code": "AdminSecretCode"
+                }
+            },
+            "function": "loadHandler"
+        },
+        {
+            "name": "List Handlers",
+            "match": {
+                "path": "/listhandlers",
+                "body": {
+                    "auth_code": "AdminSecretCode"
+                }
+            },
+            "function": "listHandlers"
         },
         {
             "name": "Hello World",
