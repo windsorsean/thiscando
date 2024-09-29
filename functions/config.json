@@ -16,6 +16,16 @@
             "function": "addConfig"
         },
         {
+            "name": "Load Config",
+            "match": {
+                "path": "/loadconfig",
+                "body": {
+                    "function": "*",
+                    "auth_code": "AdminSecretCode"
+                }
+            },
+            "function": "loadConfig"
+        },        {
             "name": "Add Handler",
             "match": {
                 "path": "/addhandler",
