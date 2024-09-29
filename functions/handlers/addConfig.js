@@ -14,9 +14,9 @@ export async function handleAddConfig(req, res, utils, vars={}) {
     // Get existing config
     const config = (await db.collection('config').doc('handlers').get()).data() || {};
 
-    // Add/update handler config
+    // Add/update handler config and remove auth_code
+    delete (req.body['auth_code']);
     config[req.body.function] = req.body;
-    console.log(config);
 
     db.collection('config').doc('handlers').set(config);
 
