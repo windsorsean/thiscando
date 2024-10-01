@@ -174,19 +174,19 @@ const CodeEditor = () => {
     }
 
     return React.createElement('div', { className: 'flex h-screen overflow-hidden' },
-        // Sidebar toggle button
-        React.createElement('button', {
-            className: 'fixed top-0 left-0 z-10 p-2 m-2 bg-gray-800 text-white rounded',
-            onClick: () => setIsSidebarOpen(!isSidebarOpen)
-        }, isSidebarOpen ? '←' : '→'),
-
         // Sidebar
         React.createElement('div', { 
-            className: `${isSidebarOpen ? 'w-64' : 'w-0'} bg-gray-800 text-white overflow-auto transition-all duration-300 ease-in-out`,
+            className: `${isSidebarOpen ? 'w-64' : 'w-0'} bg-gray-800 text-white overflow-auto transition-all duration-300 ease-in-out flex flex-col`,
             style: { minWidth: isSidebarOpen ? '200px' : '0' }
         },
-            React.createElement('div', { className: 'p-4' },
-                React.createElement('h2', { className: 'text-xl font-bold mb-4' }, 'Handlers'),
+            React.createElement('div', { className: 'p-4 flex justify-between items-center' },
+                React.createElement('h2', { className: 'text-xl font-bold' }, 'Handlers'),
+                React.createElement('button', {
+                    className: 'p-1 bg-gray-700 text-white rounded hover:bg-gray-600',
+                    onClick: () => setIsSidebarOpen(!isSidebarOpen)
+                }, isSidebarOpen ? '←' : '→')
+            ),
+            React.createElement('div', { className: 'flex-1 overflow-auto p-4' },
                 React.createElement('ul', { className: 'space-y-2' },
                     handlers.map((handler) =>
                         React.createElement('li', {
@@ -195,13 +195,15 @@ const CodeEditor = () => {
                             onClick: () => loadHandler(handler)
                         }, handler)
                     )
-                ),
+                )
+            ),
+            React.createElement('div', { className: 'p-4' },
                 React.createElement('input', {
                     type: 'text',
                     value: handlerName,
                     onChange: (e) => setHandlerName(e.target.value),
                     placeholder: 'New handler name',
-                    className: 'mt-4 p-2 w-full text-black rounded'
+                    className: 'p-2 w-full text-black rounded'
                 }),
                 React.createElement('button', {
                     onClick: saveHandler,
