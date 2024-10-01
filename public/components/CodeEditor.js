@@ -9,7 +9,7 @@ const CodeEditor = () => {
     const configEditorRef = React.useRef(null);
 
     const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const apiBaseUrl = isLocalDev ? 'http://localhost:5001/local_path_to_function' : '/do';
+    const apiBaseUrl = '/do';
 
     React.useEffect(() => {
         if (isAuthenticated) {
