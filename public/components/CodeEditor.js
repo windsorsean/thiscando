@@ -174,17 +174,19 @@ const CodeEditor = () => {
     }
 
     return React.createElement('div', { className: 'flex h-screen overflow-hidden' },
+        // Sidebar toggle button (always visible)
+        React.createElement('button', {
+            className: 'fixed top-0 left-0 z-10 p-2 m-2 bg-gray-800 text-white rounded hover:bg-gray-700',
+            onClick: () => setIsSidebarOpen(!isSidebarOpen)
+        }, isSidebarOpen ? '←' : '→'),
+
         // Sidebar
         React.createElement('div', { 
-            className: `${isSidebarOpen ? 'w-64' : 'w-0'} bg-gray-800 text-white overflow-auto transition-all duration-300 ease-in-out flex flex-col`,
+            className: `${isSidebarOpen ? 'w-64' : 'w-0'} bg-gray-800 text-white overflow-hidden transition-all duration-300 ease-in-out flex flex-col`,
             style: { minWidth: isSidebarOpen ? '200px' : '0' }
         },
-            React.createElement('div', { className: 'p-4 flex justify-between items-center' },
-                React.createElement('h2', { className: 'text-xl font-bold' }, 'Handlers'),
-                React.createElement('button', {
-                    className: 'p-1 bg-gray-700 text-white rounded hover:bg-gray-600',
-                    onClick: () => setIsSidebarOpen(!isSidebarOpen)
-                }, isSidebarOpen ? '←' : '→')
+            React.createElement('div', { className: 'p-4 pl-12' }, // Added left padding to avoid overlap with toggle button
+                React.createElement('h2', { className: 'text-xl font-bold' }, 'Handlers')
             ),
             React.createElement('div', { className: 'flex-1 overflow-auto p-4' },
                 React.createElement('ul', { className: 'space-y-2' },
