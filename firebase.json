@@ -40,7 +40,10 @@
     "rewrites": [
       {
         "source": "/do/**",
-        "function": "handler"
+        "function": {
+            "functionId": "handler",
+            "region": "northamerica-northeast1"
+        }
       },
       {
         "source": "/",
