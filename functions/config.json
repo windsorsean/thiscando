@@ -59,6 +59,26 @@
             "function": "listHandlers"
         },
         {
+            "name": "Get Handler Template",
+            "match": {
+                "path": "/gethandlertemplate",
+                "body": {
+                    "auth_code": "AdminSecretCode"
+                }
+            },
+            "function": "getHandlerTemplate"
+        },
+        {
+            "name": "Get Config Template",
+            "match": {
+                "path": "/getconfigtemplate",
+                "body": {
+                    "auth_code": "AdminSecretCode"
+                }
+            },
+            "function": "getConfigTemplate"
+        },
+        {
             "name": "Hello World",
             "match": {
                 "path": "/helloworld/*",

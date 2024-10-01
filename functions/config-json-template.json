@@ -1,3 +1,5 @@
+// ** IMPORTANT **
+// Remove all comments before using. JSON does not permit comments.
 {
   // Debug mode: Set to true to enable debug logging
   "debug": true,

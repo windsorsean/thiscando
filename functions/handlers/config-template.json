@@ -1,0 +1,35 @@
+// ** IMPORTANT **
+// Remove all comments before using. JSON does not permit comments.
+{
+    // Descriptive name for the handler
+    "name": "Example Handler",
+    // Matching criteria for incoming requests
+    "match": {
+        // URL path to match (case-insensitive, optional wildcard to allow subpaths)
+        "path": "/example/*",
+        // Request body structure to match
+        "body": {
+            // Use "*" as a wildcard to match any value
+            "requiredField": "*",
+            // Specify exact values to match
+            "specificValue": "example",
+            // Add an auth code or security key to improve security
+            "auth_code": "MySecretCode"
+        },
+        // Optional: Use URL parameters instead of "body" if doing a GET request
+        "params": {
+            "optionalParam": "*"
+        }
+    },
+    // This should match the function name of your handler exactly (case sensitive)
+    "function": "handleExample",
+    // Optional, variables that are passed to the handler function.
+    // Use these for things like api keys, credentials, etc.
+    "vars": {
+        "var1": "example_string",
+        "var2": [
+            "example",
+            "array"
+        ]
+    }
+}
