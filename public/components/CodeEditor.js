@@ -7,8 +7,6 @@ const CodeEditor = () => {
     const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
     const editorRef = React.useRef(null);
     const configEditorRef = React.useRef(null);
-
-    const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const apiBaseUrl = '/do';
 
     React.useEffect(() => {
@@ -112,7 +110,38 @@ const CodeEditor = () => {
     const saveHandler = async () => {
         try {
             const currentCode = editorRef.current.getValue();
-            const currentConfig = JSON.parse(configEditorRef.current.getValue());
+            const currentConfigString = configEditorRef.current.getValue();
+
+            // Check for errors in the editors
+            const codeModel = editorRef.current.getModel();
+            const codeErrors = monaco.editor.getModelMarkers({ resource: codeModel.uri }).filter(marker => marker.severity === monaco.MarkerSeverity.Error);
+            const jsonModel = configEditorRef.current.getModel();
+            const jsonErrors = monaco.editor.getModelMarkers({ resource: jsonModel.uri }).filter(marker => marker.severity === monaco.MarkerSeverity.Error);
+
+            if (codeErrors.length > 0) {
+                setMessage({ type: 'error', text: `There are ${codeErrors.length} error(s) in your code. Please fix them before saving.` });
+                return;
+            }
+
+            if (jsonErrors.length > 0) {
+                setMessage({ type: 'error', text: `There are ${jsonErrors.length} error(s) in your config JSON. Please fix them before saving.` });
+                return;
+            }
+
+            // Validate JSON
+            let currentConfig;
+            try {
+                currentConfig = JSON.parse(currentConfigString);
+            } catch (error) {
+                setMessage({ type: 'error', text: 'Invalid JSON in config editor. Please check your syntax.' });
+                return;
+            }
+
+            // Make sure config matches handler name
+            if (currentConfig.function != handlerName) {
+                setMessage({ type: 'error', text: 'Function name in config must match handler name.' });
+                return;
+            }
 
             const [codeResponse, configResponse] = await Promise.all([
                 fetch(`${apiBaseUrl}/addhandler`, {
@@ -151,6 +180,38 @@ const CodeEditor = () => {
         }
     };
 
+    const fetchTemplate = async (endpoint) => {
+        try {
+            const response = await fetch(`${apiBaseUrl}/${endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ auth_code: authCode }),
+            });
+            const data = await response.json();
+            if (response.ok) {
+                return data.template;
+            } else {
+                setMessage({ type: 'error', text: `Failed to fetch ${endpoint} template` });
+                return null;
+            }
+        } catch (error) {
+            setMessage({ type: 'error', text: `Error fetching ${endpoint} template` });
+            return null;
+        }
+    };
+
+    const loadNewHandler = async () => {
+        const handlerTemplate = await fetchTemplate('gethandlertemplate');
+        const configTemplate = await fetchTemplate('getconfigtemplate');
+
+        if (handlerTemplate && configTemplate) {
+            editorRef.current.setValue(handlerTemplate);
+            configEditorRef.current.setValue(configTemplate);
+            setHandlerName('');
+            setMessage({ type: 'success', text: 'New handler template loaded' });
+        }
+    };
+
     if (!isAuthenticated) {
         return React.createElement('div', { className: 'p-4' },
             React.createElement('input', {
@@ -181,11 +242,11 @@ const CodeEditor = () => {
         }, isSidebarOpen ? '←' : '→'),
 
         // Sidebar
-        React.createElement('div', { 
+        React.createElement('div', {
             className: `${isSidebarOpen ? 'w-64' : 'w-0'} bg-gray-800 text-white overflow-hidden transition-all duration-300 ease-in-out flex flex-col`,
             style: { minWidth: isSidebarOpen ? '200px' : '0' }
         },
-            React.createElement('div', { className: 'p-4 pl-12' }, // Added left padding to avoid overlap with toggle button
+            React.createElement('div', { className: 'p-4 pl-12' },
                 React.createElement('h2', { className: 'text-xl font-bold' }, 'Handlers')
             ),
             React.createElement('div', { className: 'flex-1 overflow-auto p-4' },
@@ -198,41 +259,49 @@ const CodeEditor = () => {
                         }, handler)
                     )
                 )
-            ),
-            React.createElement('div', { className: 'p-4' },
-                React.createElement('input', {
-                    type: 'text',
-                    value: handlerName,
-                    onChange: (e) => setHandlerName(e.target.value),
-                    placeholder: 'New handler name',
-                    className: 'p-2 w-full text-black rounded'
-                }),
-                React.createElement('button', {
-                    onClick: saveHandler,
-                    className: 'mt-2 bg-green-500 text-white p-2 w-full rounded hover:bg-green-600'
-                }, 'Save Handler')
             )
         ),
 
         // Main content
         React.createElement('div', { className: 'flex-1 flex flex-col overflow-hidden' },
-            message && React.createElement('div', {
-                className: `p-2 ${message.type === 'error' ? 'bg-red-100' : 'bg-green-100'}`
-            },
-                React.createElement('strong', null, message.type === 'error' ? 'Error: ' : 'Success: '),
-                message.text
+            React.createElement('div', { className: 'flex flex-col p-2 bg-gray-200' },
+                React.createElement('div', { className: 'flex justify-between items-center' },
+                    React.createElement('input', {
+                        type: 'text',
+                        value: handlerName,
+                        onChange: (e) => setHandlerName(e.target.value),
+                        placeholder: 'Handler name',
+                        className: 'p-2 border rounded'
+                    }),
+                    React.createElement('div', null,
+                        React.createElement('button', {
+                            onClick: loadNewHandler,
+                            className: 'bg-blue-500 text-white p-2 rounded mr-2 hover:bg-blue-600'
+                        }, 'New Handler'),
+                        React.createElement('button', {
+                            onClick: saveHandler,
+                            className: 'bg-green-500 text-white p-2 rounded hover:bg-green-600'
+                        }, 'Save Handler')
+                    )
+                ),
+                message && React.createElement('div', {
+                    className: `mt-2 p-1 text-sm ${message.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`
+                },
+                    React.createElement('strong', null, message.type === 'error' ? 'Error: ' : 'Success: '),
+                    message.text
+                )
             ),
-            React.createElement('div', { 
-                id: 'configEditor', 
+            React.createElement('div', {
+                id: 'configEditor',
                 className: 'border-b border-gray-300',
-                style: { 
+                style: {
                     height: '30%',
                     minHeight: '100px',
                     maxHeight: '300px'
-                } 
+                }
             }),
-            React.createElement('div', { 
-                id: 'monacoEditor', 
+            React.createElement('div', {
+                id: 'monacoEditor',
                 className: 'flex-1'
             })
         )
