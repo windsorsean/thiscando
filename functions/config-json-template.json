@@ -9,6 +9,9 @@
   // - "firestore": Load configuration from Firestore database
   "source": "local",
 
+  // Set an admin code that is required to be sent as an "auth_code" body parameter on any admin functions
+  "admin_auth_code": "AdminSecretCode",
+
   // Array of handler configurations
   "handlers": [
     {
@@ -55,7 +58,8 @@
           "field2": "*"
         }
       },
-      "function": "handleAnotherExample"
+      "function": "handleAnotherExample",
+      "admin": true // Special designation for admin functions. Will require admin auth_code and local config will take precedence over firestore config.
     }
 
     // Add more handler configurations as needed...

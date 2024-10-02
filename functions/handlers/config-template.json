@@ -31,5 +31,7 @@
             "example",
             "array"
         ]
-    }
+    },
+    // Set admin to true to require the admin auth_code
+    "admin": true
 }

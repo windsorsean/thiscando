@@ -1,6 +1,7 @@
 {
     "debug": true,
     "source": "local",
+    "admin_auth_code": "AdminSecretCode",
     "handlers": [
         {
             "name": "Add Config",
@@ -9,74 +10,94 @@
                 "body": {
                     "name": "*",
                     "match": "*",
-                    "function": "*",
-                    "auth_code": "AdminSecretCode"
+                    "function": "*"
                 }
             },
-            "function": "addConfig"
+            "function": "addConfig",
+            "admin": true
         },
         {
             "name": "Load Config",
             "match": {
                 "path": "/loadconfig",
                 "body": {
-                    "function": "*",
-                    "auth_code": "AdminSecretCode"
+                    "function": "*"
                 }
             },
-            "function": "loadConfig"
-        },        {
+            "function": "loadConfig",
+            "admin": true
+        },
+        {
             "name": "Add Handler",
             "match": {
                 "path": "/addhandler",
                 "body": {
                     "code": "*",
-                    "name": "*",
-                    "auth_code": "AdminSecretCode"
+                    "name": "*"
                 }
             },
-            "function": "addHandler"
+            "function": "addHandler",
+            "admin": true
         },
         {
             "name": "Load Handler",
             "match": {
                 "path": "/loadhandler",
                 "body": {
-                    "name": "*",
-                    "auth_code": "AdminSecretCode"
+                    "name": "*"
                 }
             },
-            "function": "loadHandler"
+            "function": "loadHandler",
+            "admin": true
         },
         {
             "name": "List Handlers",
             "match": {
                 "path": "/listhandlers",
-                "body": {
-                    "auth_code": "AdminSecretCode"
-                }
+                "body": {}
             },
-            "function": "listHandlers"
+            "function": "listHandlers",
+            "admin": true
         },
         {
             "name": "Get Handler Template",
             "match": {
                 "path": "/gethandlertemplate",
-                "body": {
-                    "auth_code": "AdminSecretCode"
-                }
+                "body": {}
             },
-            "function": "getHandlerTemplate"
+            "function": "getHandlerTemplate",
+            "admin": true
         },
         {
             "name": "Get Config Template",
             "match": {
                 "path": "/getconfigtemplate",
+                "body": {}
+            },
+            "function": "getConfigTemplate",
+            "admin": true
+        },
+        {
+            "name": "Delete Handler Config",
+            "match": {
+                "path": "/deleteconfig",
                 "body": {
-                    "auth_code": "AdminSecretCode"
+                    "name": "*"
                 }
             },
-            "function": "getConfigTemplate"
+            "function": "deleteConfig",
+            "admin": true
+        },
+        {
+            "name": "Delete Handler",
+            "match": {
+                "path": "/deletehandler",
+                "body": {
+                    "name": "*"
+                }
+            },
+            "function": "deleteHandler",
+            "admin": true
         },
         {
             "name": "Hello World",

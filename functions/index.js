@@ -40,6 +40,10 @@ async function init() {
         process.exit(1);
     }
 
+    // Add the admin handlers to start. These take precedence over firestore handlers.
+    handlerConfig = config.handlers.filter((handler) => handler.admin);
+    const adminHandlers = new Set(handlerConfig.map((item) => item.function));
+
     // If config file says to look at firestore, reload all config settings from firestore
     if (config.source === 'firestore') {
         logger('Loading config from firestore.', 'INFO');
@@ -54,7 +58,7 @@ async function init() {
     // Turn on debug if needed
     process.env.DEBUG_ENABLED = config.debug ? 'true' : 'false';
 
-    logger({ config }, 'DEBUG');
+    logger({ config, adminHandlers }, 'DEBUG');
 
     switch (config.source) {
     case 'local':
@@ -62,7 +66,11 @@ async function init() {
         break;
     case 'firestore':
         try {
-            handlerConfig = Object.values((await db.collection('config').doc('handlers').get()).data());
+            // Add firestore handlers to array as long as they don't conflict with admin handlers
+            const firestoreHandlers = Object.values((await db.collection('config').doc('handlers').get()).data());
+            handlerConfig = handlerConfig.concat(
+                firestoreHandlers.filter((item) => !adminHandlers.has(item.function))
+            );
         } catch (error) {
             console.error('Error loading config from Firestore:', error);
             process.exit(1);
@@ -72,6 +80,13 @@ async function init() {
         logger('Invalid handler source.', 'ERROR');
         process.exit(1);
     }
+
+    // Add auth_codes to admin handlers
+    handlerConfig.forEach((handler) => {
+        if (handler.admin) {
+            handler.match.body.auth_code = config.admin_auth_code;
+        }
+    });
 
     logger({ handlerConfig }, 'DEBUG');
 }
