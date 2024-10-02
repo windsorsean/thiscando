@@ -143,6 +143,15 @@ const CodeEditor = () => {
                 return;
             }
 
+            // Check if the handler already exists
+            if (handlers.includes(handlerName)) {
+                const confirmOverwrite = window.confirm("Are you sure you want to overwrite the existing handler?");
+                if (!confirmOverwrite) {
+                    setMessage({ type: 'error', text: 'Overwrite canceled' });
+                    return;
+                }
+            }            
+
             const [codeResponse, configResponse] = await Promise.all([
                 fetch(`${apiBaseUrl}/addhandler`, {
                     method: 'POST',
@@ -177,6 +186,70 @@ const CodeEditor = () => {
             }
         } catch (error) {
             setMessage({ type: 'error', text: 'Failed to save handler' });
+        }
+    };
+
+    const deleteHandler = async (name) => {
+        try {
+            const confirmDelete = window.confirm(`Are you sure you want to delete the handler "${name}"?`);
+            if (!confirmDelete) {
+                setMessage({ type: 'error', text: 'Delete canceled' });
+                return;
+            }
+
+            const [codeResponse, configResponse] = await Promise.all([
+                fetch(`${apiBaseUrl}/deletehandler`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: handlerName, auth_code: authCode }),
+                }),
+                fetch(`${apiBaseUrl}/deleteconfig`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: handlerName, auth_code: authCode }),
+                })
+            ]);
+
+            const [codeData, configData] = await Promise.all([
+                codeResponse.json(),
+                configResponse.json()
+            ]);
+
+            if (codeResponse.ok && configResponse.ok) {
+                setMessage({ type: 'success', text: 'Handler and config deleted successfully' });
+                const handlersResponse = await fetch(`${apiBaseUrl}/listhandlers`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ auth_code: authCode }),
+                });
+                const handlersData = await handlersResponse.json();
+                if (handlersResponse.ok) {
+                    setHandlers(handlersData.handlers);
+                }
+            } else {
+                setMessage({ type: 'error', text: codeData.error || configData.error || 'Failed to delete handler' });
+            }
+        } catch (error) {
+            setMessage({ type: 'error', text: 'Failed to delete handler' });
+        }
+    };
+
+    const refreshHandlers = async () => {
+        try {
+            const response = await fetch(`${apiBaseUrl}/listhandlers`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ auth_code: authCode }),
+            });
+            const data = await response.json();
+            if (response.ok) {
+                setHandlers(data.handlers);
+                setMessage({ type: 'success', text: 'Handlers refreshed successfully' });
+            } else {
+                setMessage({ type: 'error', text: data.error || 'Failed to refresh handlers' });
+            }
+        } catch (error) {
+            setMessage({ type: 'error', text: 'Failed to refresh handlers' });
         }
     };
 
@@ -246,17 +319,32 @@ const CodeEditor = () => {
             className: `${isSidebarOpen ? 'w-64' : 'w-0'} bg-gray-800 text-white overflow-hidden transition-all duration-300 ease-in-out flex flex-col`,
             style: { minWidth: isSidebarOpen ? '200px' : '0' }
         },
-            React.createElement('div', { className: 'p-4 pl-12' },
-                React.createElement('h2', { className: 'text-xl font-bold' }, 'Handlers')
+            React.createElement('div', { className: 'p-4 pl-12 flex justify-between items-center' },
+                React.createElement('h2', { className: 'text-xl font-bold' }, 'Handlers'),
+                React.createElement('button', {
+                    onClick: refreshHandlers,
+                    className: 'text-white hover:text-blue-300'
+                }, '↻')
             ),
             React.createElement('div', { className: 'flex-1 overflow-auto p-4' },
                 React.createElement('ul', { className: 'space-y-2' },
                     handlers.map((handler) =>
                         React.createElement('li', {
                             key: handler,
-                            className: `cursor-pointer p-2 rounded hover:bg-gray-700 ${handlerName === handler ? 'bg-gray-700' : ''}`,
-                            onClick: () => loadHandler(handler)
-                        }, handler)
+                            className: `flex justify-between items-center p-2 rounded hover:bg-gray-700 ${handlerName === handler ? 'bg-gray-700' : ''}`,
+                        },
+                            React.createElement('span', {
+                                className: 'cursor-pointer flex-grow',
+                                onClick: () => loadHandler(handler)
+                            }, handler),
+                            React.createElement('button', {
+                                onClick: (e) => {
+                                    e.stopPropagation();
+                                    deleteHandler(handler);
+                                },
+                                className: 'text-red-500 hover:text-red-700'
+                            }, '×')
+                        )
                     )
                 )
             )
