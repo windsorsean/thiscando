@@ -10,10 +10,12 @@
                 "body": {
                     "name": "*",
                     "match": "*",
+                    "handler": "*",
                     "function": "*"
                 }
             },
-            "function": "addConfig",
+            "handler": "addConfig",
+            "function": "handleAddConfig",
             "admin": true
         },
         {
@@ -21,10 +23,11 @@
             "match": {
                 "path": "/loadconfig",
                 "body": {
-                    "function": "*"
+                    "handler": "*"
                 }
             },
-            "function": "loadConfig",
+            "handler": "loadConfig",
+            "function": "handleLoadConfig",
             "admin": true
         },
         {
@@ -36,7 +39,8 @@
                     "name": "*"
                 }
             },
-            "function": "addHandler",
+            "handler": "addHandler",
+            "function": "handleAddHandler",
             "admin": true
         },
         {
@@ -47,7 +51,8 @@
                     "name": "*"
                 }
             },
-            "function": "loadHandler",
+            "handler": "loadHandler",
+            "function": "handleLoadHandler",
             "admin": true
         },
         {
@@ -56,7 +61,8 @@
                 "path": "/listhandlers",
                 "body": {}
             },
-            "function": "listHandlers",
+            "handler": "listHandlers",
+            "function": "handleListHandlers",
             "admin": true
         },
         {
@@ -65,7 +71,8 @@
                 "path": "/gethandlertemplate",
                 "body": {}
             },
-            "function": "getHandlerTemplate",
+            "handler": "getHandlerTemplate",
+            "function": "handleGetHandlerTemplate",
             "admin": true
         },
         {
@@ -74,7 +81,8 @@
                 "path": "/getconfigtemplate",
                 "body": {}
             },
-            "function": "getConfigTemplate",
+            "handler": "getConfigTemplate",
+            "function": "handleGetConfigTemplate",
             "admin": true
         },
         {
@@ -85,7 +93,8 @@
                     "name": "*"
                 }
             },
-            "function": "deleteConfig",
+            "handler": "deleteConfig",
+            "function": "handleDeleteConfig",
             "admin": true
         },
         {
@@ -96,7 +105,8 @@
                     "name": "*"
                 }
             },
-            "function": "deleteHandler",
+            "handler": "deleteHandler",
+            "function": "handleDeleteHandler",
             "admin": true
         },
         {
@@ -105,7 +115,8 @@
                 "path": "/helloworld/*",
                 "params": { "data":  "*" }
             },
-            "function": "helloWorld",
+            "handler": "helloWorld",
+            "function": "handleHelloWorld",
             "vars": {
                 "animals": ["dog", "cat"]
             }

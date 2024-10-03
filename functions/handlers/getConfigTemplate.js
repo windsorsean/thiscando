@@ -21,14 +21,25 @@ export async function handleGetConfigTemplate(req, res, utils, vars={}) {
         // If not found, get from local file
         let template = templateDoc.exists ? JSON.parse(templateDoc.data().config) : false;
         if (!template) {
-            if (fs.existsSync('./handlers/config-template.json')) { template = fs.readFileSync('./handlers/config-template.json', 'utf8') }
+            if (fs.existsSync('./config-template.json')) {
+                template = fs.readFileSync('./config-template.json', 'utf8');
+            }
+            if (fs.existsSync('./handlers/config-template.json')) {
+                template = fs.readFileSync('./handlers/config-template.json', 'utf8');
+            }
         }
 
         // Send the handler data as the response
         res.status(200).send({ template: template || '' });
     } catch (error) {
         // If no firestore is available, use local file
-        const template = fs.existsSync('./handlers/config-template.json') ? fs.readFileSync('./handlers/config-template.json', 'utf8') : false;
+        let template = '';
+        if (fs.existsSync('./config-template.json')) {
+            template = fs.readFileSync('./config-template.json', 'utf8');
+        }
+        if (fs.existsSync('./handlers/config-template.json')) {
+            template = fs.readFileSync('./handlers/config-template.json', 'utf8');
+        }
         res.status(200).send({ template: template || '' });
         logger({ error: error.message, stack: error.stack }, 'INFO');
     }

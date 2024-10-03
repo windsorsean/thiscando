@@ -1,5 +1,6 @@
 import { getFirestore } from 'firebase-admin/firestore';
 import esprima from 'esprima-next';
+import { createHash } from 'crypto';
 
 const db = getFirestore();
 
@@ -27,6 +28,9 @@ export async function handleAddHandler(req, res, utils, vars={}) {
         code: JSON.stringify(req.body.code),
         name: req.body.name
     };
+
+    // Add a MD5 hash of the code
+    docData.hash = createHash('md5').update(docData.code).digest('hex');
 
     try {
         db.collection('handlers').doc(docData.name).set(docData);

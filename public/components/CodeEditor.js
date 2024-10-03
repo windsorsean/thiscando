@@ -2,9 +2,16 @@ const CodeEditor = () => {
     const [handlerName, setHandlerName] = React.useState('');
     const [message, setMessage] = React.useState(null);
     const [handlers, setHandlers] = React.useState([]);
+    const [loadingHandler, setLoadingHandler] = React.useState(null);
+    const [isRefreshing, setIsRefreshing] = React.useState(false);
     const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+    const [isAuthenticating, setIsAuthenticating] = React.useState(false);
+    const [isLoadingNewHandler, setIsLoadingNewHandler] = React.useState(false);
+    const [isSavingHandler, setIsSavingHandler] = React.useState(false);
     const [authCode, setAuthCode] = React.useState('');
     const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
+    const [originalCode, setOriginalCode] = React.useState('');
+    const [originalConfig, setOriginalConfig] = React.useState('');    
     const editorRef = React.useRef(null);
     const configEditorRef = React.useRef(null);
     const apiBaseUrl = '/do';
@@ -55,6 +62,7 @@ const CodeEditor = () => {
     };
 
     const authenticate = async () => {
+        setIsAuthenticating(true);
         try {
             const response = await fetch(`${apiBaseUrl}/listhandlers`, {
                 method: 'POST',
@@ -71,10 +79,20 @@ const CodeEditor = () => {
             }
         } catch (error) {
             setMessage({ type: 'error', text: 'Authentication failed' });
+        } finally {
+            setIsAuthenticating(false);
         }
     };
 
     const loadHandler = async (name) => {
+        if (hasUnsavedChanges()) {
+            const confirmLoad = window.confirm("You have unsaved changes. Are you sure you want to load a new handler without saving?");
+            if (!confirmLoad) {
+                return;
+            }
+        }
+
+        setLoadingHandler(name);
         try {
             const [codeResponse, configResponse] = await Promise.all([
                 fetch(`${apiBaseUrl}/loadhandler`, {
@@ -85,7 +103,7 @@ const CodeEditor = () => {
                 fetch(`${apiBaseUrl}/loadconfig`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ function: name, auth_code: authCode }),
+                    body: JSON.stringify({ handler: name, auth_code: authCode }),
                 })
             ]);
 
@@ -98,12 +116,16 @@ const CodeEditor = () => {
                 editorRef.current.setValue(codeData.code);
                 configEditorRef.current.setValue(JSON.stringify(configData.config, null, 2));
                 setHandlerName(name);
+                setOriginalCode(codeData.code);
+                setOriginalConfig(JSON.stringify(configData.config, null, 2));
                 setMessage({ type: 'success', text: 'Handler loaded successfully' });
             } else {
                 setMessage({ type: 'error', text: codeData.error || configData.error });
             }
         } catch (error) {
             setMessage({ type: 'error', text: 'Failed to load handler' });
+        } finally {
+            setLoadingHandler(null);
         }
     };
 
@@ -137,9 +159,32 @@ const CodeEditor = () => {
                 return;
             }
 
+            // Validate that required params are included
+            if (!(
+                currentConfig.handler &&
+                currentConfig.function &&
+                currentConfig.match &&
+                currentConfig.name
+            )) {
+                setMessage({ type: 'error', text: 'Config is missing required parameters.' });
+                return;
+            }
+
+            // Make sure handler name is valid
+            if (!/^(?![-_])[a-zA-Z0-9_-]+(?<![-_])$/.test(handlerName)) {
+                setMessage({ type: 'error', text: 'Handler name is invalid (only letters, numbers, or underscore).' });
+                return;
+            }
+
             // Make sure config matches handler name
-            if (currentConfig.function != handlerName) {
-                setMessage({ type: 'error', text: 'Function name in config must match handler name.' });
+            if (currentConfig.handler != handlerName) {
+                setMessage({ type: 'error', text: 'Handler name in config must match handler name.' });
+                return;
+            }
+
+            // Check that code contains the function name
+            if (!currentCode.includes(`function ${currentConfig.function}(`)) {
+                setMessage({ type: 'error', text: `Make sure the function ${currentConfig.function} exists.` });
                 return;
             }
 
@@ -150,8 +195,9 @@ const CodeEditor = () => {
                     setMessage({ type: 'error', text: 'Overwrite canceled' });
                     return;
                 }
-            }            
+            }
 
+            setIsSavingHandler(true);
             const [codeResponse, configResponse] = await Promise.all([
                 fetch(`${apiBaseUrl}/addhandler`, {
                     method: 'POST',
@@ -172,6 +218,8 @@ const CodeEditor = () => {
 
             if (codeResponse.ok && configResponse.ok) {
                 setMessage({ type: 'success', text: 'Handler and config saved successfully' });
+                setOriginalCode(currentCode);
+                setOriginalConfig(currentConfigString);
                 const handlersResponse = await fetch(`${apiBaseUrl}/listhandlers`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -186,6 +234,8 @@ const CodeEditor = () => {
             }
         } catch (error) {
             setMessage({ type: 'error', text: 'Failed to save handler' });
+        } finally {
+            setIsSavingHandler(false);
         }
     };
 
@@ -235,6 +285,7 @@ const CodeEditor = () => {
     };
 
     const refreshHandlers = async () => {
+        setIsRefreshing(true);
         try {
             const response = await fetch(`${apiBaseUrl}/listhandlers`, {
                 method: 'POST',
@@ -250,6 +301,8 @@ const CodeEditor = () => {
             }
         } catch (error) {
             setMessage({ type: 'error', text: 'Failed to refresh handlers' });
+        } finally {
+            setIsRefreshing(false);
         }
     };
 
@@ -274,14 +327,30 @@ const CodeEditor = () => {
     };
 
     const loadNewHandler = async () => {
-        const handlerTemplate = await fetchTemplate('gethandlertemplate');
-        const configTemplate = await fetchTemplate('getconfigtemplate');
+        if (hasUnsavedChanges()) {
+            const confirmNew = window.confirm("You have unsaved changes. Are you sure you want to create a new handler without saving?");
+            if (!confirmNew) {
+                return;
+            }
+        }
 
-        if (handlerTemplate && configTemplate) {
-            editorRef.current.setValue(handlerTemplate);
-            configEditorRef.current.setValue(configTemplate);
-            setHandlerName('');
-            setMessage({ type: 'success', text: 'New handler template loaded' });
+        setIsLoadingNewHandler(true);
+        try {
+            const handlerTemplate = await fetchTemplate('gethandlertemplate');
+            const configTemplate = await fetchTemplate('getconfigtemplate');
+    
+            if (handlerTemplate && configTemplate) {
+                editorRef.current.setValue(handlerTemplate);
+                configEditorRef.current.setValue(configTemplate);
+                setHandlerName('');
+                setOriginalCode(handlerTemplate);
+                setOriginalConfig(configTemplate);
+                setMessage({ type: 'success', text: 'New handler template loaded' });
+            }
+        } catch (error) {
+            setMessage({ type: 'error', text: 'Failed to load new handler template' });
+        } finally {
+            setIsLoadingNewHandler(false);
         }
     };
 
@@ -292,12 +361,14 @@ const CodeEditor = () => {
                 value: authCode,
                 onChange: (e) => setAuthCode(e.target.value),
                 placeholder: 'Enter auth code',
-                className: 'border p-2 mr-2'
+                className: 'border p-2 mr-2',
+                disabled: isAuthenticating
             }),
             React.createElement('button', {
                 onClick: authenticate,
-                className: 'bg-blue-500 text-white p-2'
-            }, 'Authenticate'),
+                className: `bg-blue-500 text-white p-2 ${isAuthenticating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-600'}`,
+                disabled: isAuthenticating
+            }, isAuthenticating ? 'Authenticating...' : 'Authenticate'),
             message && React.createElement('div', {
                 className: `p-2 mt-4 ${message.type === 'error' ? 'bg-red-100' : 'bg-green-100'}`
             },
@@ -306,6 +377,12 @@ const CodeEditor = () => {
             )
         );
     }
+
+    const hasUnsavedChanges = () => {
+        const currentCode = editorRef.current.getValue();
+        const currentConfig = configEditorRef.current.getValue();
+        return currentCode !== originalCode || currentConfig !== originalConfig;
+    };
 
     return React.createElement('div', { className: 'flex h-screen overflow-hidden' },
         // Sidebar toggle button (always visible)
@@ -323,7 +400,8 @@ const CodeEditor = () => {
                 React.createElement('h2', { className: 'text-xl font-bold' }, 'Handlers'),
                 React.createElement('button', {
                     onClick: refreshHandlers,
-                    className: 'text-white hover:text-blue-300'
+                    className: `text-white hover:text-blue-300 ${isRefreshing ? 'animate-spin' : ''}`,
+                    disabled: isRefreshing
                 }, '↻')
             ),
             React.createElement('div', { className: 'flex-1 overflow-auto p-4' },
@@ -334,9 +412,14 @@ const CodeEditor = () => {
                             className: `flex justify-between items-center p-2 rounded hover:bg-gray-700 ${handlerName === handler ? 'bg-gray-700' : ''}`,
                         },
                             React.createElement('span', {
-                                className: 'cursor-pointer flex-grow',
+                                className: 'cursor-pointer flex-grow flex items-center',
                                 onClick: () => loadHandler(handler)
-                            }, handler),
+                            },
+                                loadingHandler === handler ?
+                                    React.createElement('span', { className: 'mr-2 animate-spin' }, '↻') :
+                                    null,
+                                handler
+                            ),
                             React.createElement('button', {
                                 onClick: (e) => {
                                     e.stopPropagation();
@@ -364,12 +447,14 @@ const CodeEditor = () => {
                     React.createElement('div', null,
                         React.createElement('button', {
                             onClick: loadNewHandler,
-                            className: 'bg-blue-500 text-white p-2 rounded mr-2 hover:bg-blue-600'
-                        }, 'New Handler'),
+                            className: `bg-blue-500 text-white p-2 rounded mr-2 ${isLoadingNewHandler ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-600'}`,
+                            disabled: isLoadingNewHandler
+                        }, isLoadingNewHandler ? 'Loading...' : 'New Handler'),
                         React.createElement('button', {
                             onClick: saveHandler,
-                            className: 'bg-green-500 text-white p-2 rounded hover:bg-green-600'
-                        }, 'Save Handler')
+                            className: `bg-green-500 text-white p-2 rounded ${isSavingHandler ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-600'}`,
+                            disabled: isSavingHandler
+                        }, isSavingHandler ? 'Saving...' : 'Save Handler')
                     )
                 ),
                 message && React.createElement('div', {

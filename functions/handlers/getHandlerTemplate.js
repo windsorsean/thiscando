@@ -21,14 +21,25 @@ export async function handleGetHandlerTemplate(req, res, utils, vars={}) {
         // If not found, get from local file
         let template = templateDoc.exists ? JSON.parse(templateDoc.data().handler) : false;
         if (!template) {
-            if (fs.existsSync('./handlers/handler-template.js')) { template = fs.readFileSync('./handlers/handler-template.js', 'utf8') }
+            if (fs.existsSync('./handler-template.js')) {
+                template = fs.readFileSync('./handler-template.js', 'utf8');
+            }
+            if (fs.existsSync('./handlers/handler-template.js')) {
+                template = fs.readFileSync('./handlers/handler-template.js', 'utf8');
+            }
         }
 
         // Send the handler data as the response
         res.status(200).send({ template: template || '' });
     } catch (error) {
         // If no firestore is available, use local file
-        const template = fs.existsSync('./handlers/handler-template.js') ? fs.readFileSync('./handlers/handler-template.js', 'utf8') : false;
+        let template = '';
+        if (fs.existsSync('./handler-template.js')) {
+            template = fs.readFileSync('./handler-template.js', 'utf8');
+        }
+        if (fs.existsSync('./handlers/handler-template.js')) {
+            template = fs.readFileSync('./handlers/handler-template.js', 'utf8');
+        }
         res.status(200).send({ template: template || '' });
         logger({ error: error.message, stack: error.stack }, 'INFO');
     }

@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import os from 'os';
 import dotenv from 'dotenv';
+import { createHash } from 'crypto';
 import utils, { logger } from 'thiscando';
 
 dotenv.config();
@@ -94,32 +95,37 @@ async function init() {
 /**
  * Loads a handler function, either from the local file system or from Firestore.
  * @async
+ * @param {string} handlerName - The name of the handler to load.
  * @param {string} functionName - The name of the function to load.
  * @return {Function} The loaded handler function.
  * @throws {Error} If the handler function is not found or is invalid.
  */
-async function loadHandler(functionName) {
-    const localPath = path.join(__dirname, 'handlers', `${functionName}.js`);
+async function loadHandler(handlerName, functionName) {
+    logger({ handlerName, functionName }, 'DEBUG');
+    const localPath = path.join(__dirname, 'handlers', `${handlerName}.js`);
 
     // Check if the file exists locally
     if (fs.existsSync(localPath)) {
         logger({ localPath }, 'DEBUG');
         const module = await import(localPath);
-        return module[`handle${functionName.charAt(0).toUpperCase() + functionName.slice(1)}`];
+        return module[functionName];
     } else {
         // If the file doesn't exist locally, load from Firestore
-        const tempPath = path.join(tempDir, `${functionName}.mjs`);
-        logger({ tempPath }, 'DEBUG');
-        const handlerDoc = await db.collection('handlers').doc(functionName).get();
+        const handlerDoc = await db.collection('handlers').doc(handlerName).get();
         if (!handlerDoc.exists) {
-            throw new Error(`Handler ${functionName} not found in Firestore`);
+            throw new Error(`Handler ${handlerName} not found in Firestore`);
         }
         const handlerData = handlerDoc.data();
         logger({ handlerData }, 'DEBUG');
+
+        // Generate a MD5 hash value for the code if needed. We'll use it for the temp file name.
+        if (!handlerData.hash) { handlerData.hash = createHash('md5').update(handlerData.code).digest('hex'); }
+        const tempPath = path.join(tempDir, `${handlerData.hash}.mjs`);
+        logger({ tempPath }, 'DEBUG');
         fs.writeFileSync(tempPath, JSON.parse(handlerData.code), 'utf8');
         const module = await import(tempPath);
         logger(`module loaded: ${tempPath}`, 'DEBUG');
-        return module[`handle${functionName.charAt(0).toUpperCase() + functionName.slice(1)}`];
+        return module[functionName];
     }
 }
 
@@ -261,14 +267,14 @@ function matchStringWithWildcard(str, pattern) {
  */
 async function handleRoute(route, req, res) {
     try {
-        const handler = await loadHandler(route.function);
+        const handler = await loadHandler(route.handler, route.function);
         if (typeof handler === 'function') {
             await handler(req, res, utils, route.vars ?? {});
         } else {
             throw new Error(`Handler function for ${route.function} is not a valid function`);
         }
     } catch (error) {
-        logger({ msg: `Error handling route ${route.function}:`, error }, 'ERROR');
+        logger({ msg: `Error handling route ${route.handler}:`, error }, 'ERROR');
         res.status(500).send('Internal Server Error');
     }
 }

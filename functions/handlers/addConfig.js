@@ -16,9 +16,14 @@ export async function handleAddConfig(req, res, utils, vars={}) {
 
     // Add/update handler config and remove auth_code
     delete (req.body['auth_code']);
-    config[req.body.function] = req.body;
+    config[req.body.handler] = req.body;
 
-    db.collection('config').doc('handlers').set(config);
+    try {
+        db.collection('config').doc('handlers').set(config);
+    } catch (err) {
+        res.status(500).send({ error: 'Unable to save to firestore' });
+        return;
+    }
 
     // Return success
     res.send({

@@ -16,11 +16,11 @@ export async function handleLoadConfig(req, res, utils, vars={}) {
         const config = (await db.collection('config').doc('handlers').get()).data() || {};
 
         // Get handler config
-        if (req.body.function === 'all') {
+        if (req.body.handler === 'all') {
             res.send({ config });
         } else {
-            if (config[req.body.function]) {
-                res.send({ config: config[req.body.function] });
+            if (config[req.body.handler]) {
+                res.send({ config: config[req.body.handler] });
             } else {
                 res.status(400).send({ error: 'Handler config not found.' });
             }

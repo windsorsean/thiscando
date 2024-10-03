@@ -1,13 +1,39 @@
 /**
- * @fileoverview Template for creating new handlers in the Thiscando platform.
+ * @fileoverview Template for creating new handlers.
  * @description This template provides a structure for implementing new handlers
  * that can be dynamically loaded and executed by the main handler function.
+ * 
+ * The following node modules are already available:
+ *      axios, lodash, cheerio, moment, firebase-admin
+ * 
+ * The following built in utilities are available in the 'utils' object provided.
+ *      utils.logger(data, severity): Log activity in a Firebase and console friendly way.
+ *          - data: {object|string} Item to log
+ *          - severity: {string} DEBUG|INFO|ERROR|auto (default=auto)
+ *          - If severity is 'auto', logger will use 'DEBUG' unless an error is detected in the data.
+ *          - DEBUG will only log if debug=true in config settings.
+ *      utils.axiosErr(error, asJSON, includeStack): Parse an axios error in an easy to read format
+ *          - error: {object} Axios error object.
+ *          - asJSON: {boolean} Return in JSON format instead of object. (default=false)
+ *          - includeStack: {boolean} Return the stack trace. (default=false)
+ *          - Returns an object or string (if JSON) with parsed message
+ *      utils.pushover(options): Send a message using the pushover API
+ *          - See https://pushover.net/api for available options
+ *          - Optionally use environment variables PUSHOVER_USER_KEY and PUSHOVER_TOKEN
+ *      utils.sendMail(bodyOrConfig, subject, to, from, smtpConfig): Sends an email through SMTP
+ *          - bodyOrConfig: {object|string} Either the string body or an object will all the params
+ *          - subject: {string} Email subject
+ *          - to: {string} To address
+ *          - from: {string} From address
+ *          - smtpConfig: {object}
+ *              - host: SMTP server
+ *              - port: SMTP port (default=465)
+ *              - auth: { user, pass }
+ *          - Optionally use environment variables SMTP_SERVER, SMTP_USER, SMTP_PASS
  */
 
-import { getFirestore } from 'firebase-admin/firestore';
-
-// Initialize Firestore database
-const db = getFirestore();
+// Put your imports here
+// import axios from 'axios';
 
 /**
  * Main handler function for processing incoming requests.
@@ -18,7 +44,7 @@ const db = getFirestore();
  * @param {object} utils - Buit in utilities available to handlers.
  * @param {object} [vars={}] - Optional variables passed from config.
  */
-export async function handleTemplateName(req, res, utils, vars = {}) {
+export async function handleFunctionName(req, res, utils, vars = {}) {
     // Utilities available to be used inside handlers
     const { logger, pushover, axiosErr } = utils;
 
@@ -42,19 +68,6 @@ export async function handleTemplateName(req, res, utils, vars = {}) {
         logger({ error: error.message, stack: error.stack }, 'ERROR');
         res.status(500).send({ error: 'Internal server error' });
     }
-}
-
-/**
- * Validates the incoming request data.
- * 
- * @param {functions.https.Request} req - The request object to validate.
- * @returns {boolean} True if the request is valid, false otherwise.
- */
-function validateRequest(req) {
-    // TODO: Implement request validation logic
-    // Example:
-    // return req.body && req.body.someRequiredField;
-    return true;
 }
 
 /**

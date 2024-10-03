@@ -6,13 +6,15 @@
     // Matching criteria for incoming requests
     "match": {
         // URL path to match (case-insensitive, optional wildcard to allow subpaths)
-        "path": "/example/*",
-        // Request body structure to match
+        "path": "/myexample/*",
+        // Request body structure to match if doing a POST request
         "body": {
             // Use "*" as a wildcard to match any value
             "requiredField": "*",
             // Specify exact values to match
             "specificValue": "example",
+            // Can use leading or trailing (or both) wildcard *
+            "partialValue": "*example",
             // Add an auth code or security key to improve security
             "auth_code": "MySecretCode"
         },
@@ -21,8 +23,10 @@
             "optionalParam": "*"
         }
     },
-    // This should match the function name of your handler exactly (case sensitive)
-    "function": "handleExample",
+    // This should match the name of your handler exactly (case sensitive)
+    "handler": "myExample",
+    // This will match the name of the export function in your handler (case sensitive)
+    "function": "handleMyExample",
     // Optional, variables that are passed to the handler function.
     // Use these for things like api keys, credentials, etc.
     "vars": {

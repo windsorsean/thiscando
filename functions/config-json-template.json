@@ -1,67 +1,70 @@
 // ** IMPORTANT **
 // Remove all comments before using. JSON does not permit comments.
 {
-  // Debug mode: Set to true to enable debug logging
-  "debug": true,
-
-  // Configuration source: Can be "local" or "firestore"
-  // - "local": Use this config.json file for configuration
-  // - "firestore": Load configuration from Firestore database
-  "source": "local",
-
-  // Set an admin code that is required to be sent as an "auth_code" body parameter on any admin functions
-  "admin_auth_code": "AdminSecretCode",
-
-  // Array of handler configurations
-  "handlers": [
-    {
-      // Descriptive name for the handler
-      "name": "Example Handler",
-
-      // Matching criteria for incoming requests
-      "match": {
-        // URL path to match (case-insensitive, optional wildcard to allow subpaths)
-        "path": "/example/*",
-
-        // Request body structure to match
-        "body": {
-          // Use "*" as a wildcard to match any value
-          "requiredField": "*",
-          // Specify exact values to match
-          "specificValue": "example"
+    // Debug mode: Set to true to enable debug logging
+    "debug": true,
+  
+    // Configuration source: Can be "local" or "firestore"
+    // - "local": Use this config.json file for configuration
+    // - "firestore": Load configuration from Firestore database
+    "source": "local",
+  
+    // Set an admin code that is required to be sent as an "auth_code" body parameter on any admin functions
+    "admin_auth_code": "AdminSecretCode",
+  
+    // Array of handler configurations
+    "handlers": [
+      {
+        // Descriptive name for the handler
+        "name": "Example Handler",
+  
+        // Matching criteria for incoming requests
+        "match": {
+          // URL path to match (case-insensitive, optional wildcard to allow subpaths)
+          "path": "/myexample/*",
+  
+          // Request body structure to match
+          "body": {
+            // Use "*" as a wildcard to match any value
+            "requiredField": "*",
+            // Specify exact values to match
+            "specificValue": "example"
+          },
+  
+          // Optional: URL parameters to match
+          "params": {
+            "optionalParam": "*"
+          }
         },
-
-        // Optional: URL parameters to match
-        "params": {
-          "optionalParam": "*"
+  
+        // This should match the name of your handler exactly (case sensitive)
+        "handler": "myExample",
+  
+        // This will match the name of the export function in your handler (case sensitive)
+        "function": "handleMyExample",
+  
+        // Optional, fixed variables that are passed to the handler function
+        "vars": {
+          "var1": "example_string",
+          "var2": ["example", "array"]
         }
       },
-
-      // Name of the handler function to execute
-      // This should match the exported function name in your handler file
-      "function": "handleExample",
-
-      // Optional, fixed variables that are passed to the handler function
-      "vars": {
-        "var1": "example_string",
-        "var2": ["example", "array"]
+  
+      // You can add multiple handler configurations
+      {
+        "name": "Another Handler",
+        "match": {
+          "path": "/another-example",
+          "body": {
+            "field1": "*",
+            "field2": "*"
+          }
+        },
+        "function": "handleAnotherExample",
+        "admin": true // Special designation for admin functions. Will require admin auth_code and local config will take precedence over firestore config.
       }
-    },
-
-    // You can add multiple handler configurations
-    {
-      "name": "Another Handler",
-      "match": {
-        "path": "/another-example",
-        "body": {
-          "field1": "*",
-          "field2": "*"
-        }
-      },
-      "function": "handleAnotherExample",
-      "admin": true // Special designation for admin functions. Will require admin auth_code and local config will take precedence over firestore config.
-    }
-
-    // Add more handler configurations as needed...
-  ]
-}
+  
+      // Add more handler configurations as needed...
+    ]
+  }
+  
