@@ -1,12 +1,14 @@
 import fs from 'fs';
 import logger from 'firebase-functions/logger';
 import path from 'path';
+import sendMail from '../sendMail/index.js';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const logFile = path.join(__dirname, '..', '..', '..', 'logger.log');
 const IS_LOCAL = !('GAE_RUNTIME' in process.env);
+const DO_EMAIL = false;
 
 /**
  * @typedef {Object} LogData
@@ -72,6 +74,22 @@ export default function log(data, severity = 'auto') {
     } else {
         logger.write(logObj);
     }
+
+    // Email errors, don't forget to set env variables for SMTP config
+    if (!IS_LOCAL && DO_EMAIL &&
+        process.env.MAIL_TO && process.env.MAIL_FROM &&
+        severity.toUpperCase() === 'ERROR') {
+        try {
+            sendMail({
+                body: logObj,
+                to: process.env.MAIL_TO,
+                from: process.env.MAIL_FROM,
+                subject: process.env.MAIL_SUBJECT ?? 'ERROR REPORT'
+            });
+        } catch (err) {
+            console.log(err);
+        }
+    }
 }
 
 /**
@@ -106,7 +124,7 @@ function determineSeverity(message) {
  */
 function formatStack(stackString) {
     const stackLines = stackString.split('\n').filter((item) => item.includes(' at '));
-    const lineNum = stackLines[0].includes('logger.js') ? 1 : 0;
+    const lineNum = stackLines[0].includes('/logger/') ? 1 : 0;
     const callSite = stackLines[lineNum].trim().split(' ');
     return {
         function: callSite.length > 2 ? callSite[1] : '',
