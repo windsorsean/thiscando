@@ -1,16 +1,20 @@
 import React, { useEffect, useRef } from 'react';
 
-const CodeEditor = ({ value, onChange }) => {
+const ConfigEditor = ({ value, onChange }) => {
   const editorRef = useRef(null);
 
   useEffect(() => {
     if (!editorRef.current) {
-      editorRef.current = monaco.editor.create(document.getElementById('monacoEditor'), {
+      editorRef.current = monaco.editor.create(document.getElementById('configEditor'), {
         value: value,
-        language: 'javascript',
+        language: 'json',
         theme: 'vs-dark',
         automaticLayout: true,
         minimap: { enabled: false },
+        lineNumbers: 'off',
+        folding: false,
+        scrollBeyondLastLine: false,
+        wordWrap: 'on'
       });
 
       editorRef.current.onDidChangeModelContent(() => {
@@ -32,9 +36,14 @@ const CodeEditor = ({ value, onChange }) => {
   }, [value]);
 
   return React.createElement('div', {
-    id: 'monacoEditor',
-    className: 'flex-1'
+    id: 'configEditor',
+    className: 'border-b border-gray-300',
+    style: {
+      height: '30%',
+      minHeight: '100px',
+      maxHeight: '300px'
+    }
   });
 };
 
-export default CodeEditor;
+export default ConfigEditor;
