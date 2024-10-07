@@ -14,8 +14,8 @@
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "deploy": "cd .. && firebase deploy --only functions",
-    "deploy_all": "cd .. && firebase deploy --only hosting,functions",
-    "deploy_web": "cd .. && firebase deploy --only hosting",
+    "deploy-all": "cd .. && firebase deploy --only hosting,functions",
+    "deploy-web": "cd .. && firebase deploy --only hosting",
     "logs": "firebase functions:log",
     "docs": "jsdoc -c jsdoc.json"
   },

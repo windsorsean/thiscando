@@ -1,0 +1,16 @@
+{
+    "scripts": {
+        "build:css": "tailwindcss -i ./src/styles.css -o ./public/css/styles.css --minify",
+        "serve": "firebase emulators:start --only functions",
+        "serve-db": "firebase emulators:start --export-on-exit=./.local/firestore --import=./.local/firestore",
+        "deploy": "firebase deploy --only functions",
+        "deploy-all": "firebase deploy --only hosting,functions",
+        "deploy-web": "firebase deploy --only hosting",
+        "logs": "firebase functions:log"
+    },
+    "devDependencies": {
+        "autoprefixer": "^10.4.20",
+        "postcss": "^8.4.47",
+        "tailwindcss": "^3.4.13"
+    }
+}
