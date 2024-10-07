@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import * as api from './api.js';
 import AuthenticationForm from './AuthenticationForm.js';
 import Sidebar from './Sidebar.js';
 import HeaderActions from './HeaderActions.js';
@@ -22,24 +23,15 @@ const App = () => {
     const [config, setConfig] = useState('// Handler configuration');
     const [originalCode, setOriginalCode] = useState(code);
     const [originalConfig, setOriginalConfig] = useState(config);
-    const apiBaseUrl = '/do';
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
     const authenticate = async () => {
         setIsAuthenticating(true);
         try {
-            const response = await fetch(`${apiBaseUrl}/listhandlers`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ auth_code: authCode }),
-            });
-            const data = await response.json();
-            if (response.ok) {
-                setIsAuthenticated(true);
-                setHandlers(data.handlers);
-                setMessage({ type: 'success', text: 'Authentication successful' });
-            } else {
-                setMessage({ type: 'error', text: 'Authentication failed' });
-            }
+            const data = await api.listHandlers(authCode);
+            setIsAuthenticated(true);
+            setHandlers(data.handlers);
+            setMessage({ type: 'success', text: 'Authentication successful' });
         } catch (error) {
             setMessage({ type: 'error', text: 'Authentication failed' });
         } finally {
@@ -57,34 +49,17 @@ const App = () => {
 
         setLoadingHandler(name);
         try {
-            const [codeResponse, configResponse] = await Promise.all([
-                fetch(`${apiBaseUrl}/loadhandler`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, auth_code: authCode }),
-                }),
-                fetch(`${apiBaseUrl}/loadconfig`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ handler: name, auth_code: authCode }),
-                })
-            ]);
-
             const [codeData, configData] = await Promise.all([
-                codeResponse.json(),
-                configResponse.json()
+                api.loadHandler(name, authCode),
+                api.loadConfig(name, authCode)
             ]);
 
-            if (codeResponse.ok && configResponse.ok) {
-                setCode(codeData.code);
-                setConfig(JSON.stringify(configData.config, null, 2));
-                setHandlerName(name);
-                setOriginalCode(codeData.code);
-                setOriginalConfig(JSON.stringify(configData.config, null, 2));
-                setMessage({ type: 'success', text: 'Handler loaded successfully' });
-            } else {
-                setMessage({ type: 'error', text: codeData.error || configData.error });
-            }
+            setCode(codeData.code);
+            setConfig(JSON.stringify(configData.config, null, 2));
+            setHandlerName(name);
+            setOriginalCode(codeData.code);
+            setOriginalConfig(JSON.stringify(configData.config, null, 2));
+            setMessage({ type: 'success', text: 'Handler loaded successfully' });
         } catch (error) {
             setMessage({ type: 'error', text: 'Failed to load handler' });
         } finally {
@@ -142,32 +117,16 @@ const App = () => {
             }
 
             setIsSavingHandler(true);
-            const [codeResponse, configResponse] = await Promise.all([
-                fetch(`${apiBaseUrl}/addhandler`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: handlerName, code: code, auth_code: authCode }),
-                }),
-                fetch(`${apiBaseUrl}/addconfig`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ...currentConfig, auth_code: authCode }),
-                })
-            ]);
 
             const [codeData, configData] = await Promise.all([
-                codeResponse.json(),
-                configResponse.json()
+                api.saveHandler(handlerName, code, authCode),
+                api.saveConfig(currentConfig, authCode)
             ]);
 
-            if (codeResponse.ok && configResponse.ok) {
-                setMessage({ type: 'success', text: 'Handler and config saved successfully' });
-                setOriginalCode(code);
-                setOriginalConfig(config);
-                await refreshHandlers();
-            } else {
-                setMessage({ type: 'error', text: codeData.error || configData.error || 'Failed to save handler' });
-            }
+            setMessage({ type: 'success', text: 'Handler and config saved successfully' });
+            setOriginalCode(code);
+            setOriginalConfig(config);
+            await refreshHandlers();
         } catch (error) {
             setMessage({ type: 'error', text: 'Failed to save handler' });
         } finally {
@@ -183,30 +142,13 @@ const App = () => {
                 return;
             }
 
-            const [codeResponse, configResponse] = await Promise.all([
-                fetch(`${apiBaseUrl}/deletehandler`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: handlerName, auth_code: authCode }),
-                }),
-                fetch(`${apiBaseUrl}/deleteconfig`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: handlerName, auth_code: authCode }),
-                })
-            ]);
-
             const [codeData, configData] = await Promise.all([
-                codeResponse.json(),
-                configResponse.json()
+                api.deleteHandler(name, authCode),
+                api.deleteConfig(name, authCode)
             ]);
 
-            if (codeResponse.ok && configResponse.ok) {
-                setMessage({ type: 'success', text: 'Handler and config deleted successfully' });
-                await refreshHandlers();
-            } else {
-                setMessage({ type: 'error', text: codeData.error || configData.error || 'Failed to delete handler' });
-            }
+            setMessage({ type: 'success', text: 'Handler and config deleted successfully' });
+            await refreshHandlers();
         } catch (error) {
             setMessage({ type: 'error', text: 'Failed to delete handler' });
         }
@@ -215,42 +157,13 @@ const App = () => {
     const refreshHandlers = async () => {
         setIsRefreshing(true);
         try {
-            const response = await fetch(`${apiBaseUrl}/listhandlers`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ auth_code: authCode }),
-            });
-            const data = await response.json();
-            if (response.ok) {
-                setHandlers(data.handlers);
-                setMessage({ type: 'success', text: 'Handlers refreshed successfully' });
-            } else {
-                setMessage({ type: 'error', text: data.error || 'Failed to refresh handlers' });
-            }
+            const data = await api.listHandlers(authCode);
+            setHandlers(data.handlers);
+            setMessage({ type: 'success', text: 'Handlers refreshed successfully' });
         } catch (error) {
             setMessage({ type: 'error', text: 'Failed to refresh handlers' });
         } finally {
             setIsRefreshing(false);
-        }
-    };
-
-    const fetchTemplate = async (endpoint) => {
-        try {
-            const response = await fetch(`${apiBaseUrl}/${endpoint}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ auth_code: authCode }),
-            });
-            const data = await response.json();
-            if (response.ok) {
-                return data.template;
-            } else {
-                setMessage({ type: 'error', text: `Failed to fetch ${endpoint} template` });
-                return null;
-            }
-        } catch (error) {
-            setMessage({ type: 'error', text: `Error fetching ${endpoint} template` });
-            return null;
         }
     };
 
@@ -264,15 +177,19 @@ const App = () => {
 
         setIsLoadingNewHandler(true);
         try {
-            const handlerTemplate = await fetchTemplate('gethandlertemplate');
-            const configTemplate = await fetchTemplate('getconfigtemplate');
+            const [handlerTemplate, configTemplate] = await Promise.all([
+                api.getHandlerTemplate(authCode),
+                api.getConfigTemplate(authCode)
+            ]);
 
-            if (handlerTemplate && configTemplate) {
-                setCode(handlerTemplate);
-                setConfig(configTemplate);
+            if (handlerTemplate.template && configTemplate.template) {
+                const handlerCode = handlerTemplate.template;
+                const configCode = handlerTemplate.template;
+                setCode(handlerCode);
+                setConfig(configCode);
                 setHandlerName('');
-                setOriginalCode(handlerTemplate);
-                setOriginalConfig(configTemplate);
+                setOriginalCode(handlerCode);
+                setOriginalConfig(configCode);
                 setMessage({ type: 'success', text: 'New handler template loaded' });
             }
         } catch (error) {
