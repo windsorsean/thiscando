@@ -18,10 +18,10 @@ const App = () => {
     const [isSavingHandler, setIsSavingHandler] = useState(false);
     const [authCode, setAuthCode] = useState('');
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    const [originalCode, setOriginalCode] = useState('');
-    const [originalConfig, setOriginalConfig] = useState('');
     const [code, setCode] = useState('// Type your code here');
     const [config, setConfig] = useState('// Handler configuration');
+    const [originalCode, setOriginalCode] = useState(code);
+    const [originalConfig, setOriginalConfig] = useState(config);
     const apiBaseUrl = '/do';
 
     const authenticate = async () => {
