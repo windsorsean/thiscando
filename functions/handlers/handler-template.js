@@ -30,6 +30,11 @@
  *              - port: SMTP port (default=465)
  *              - auth: { user, pass }
  *          - Optionally use environment variables SMTP_SERVER, SMTP_USER, SMTP_PASS
+ *      utils.otp: Generate and verify TOTP tokens (one-time passwords)
+ *          - utils.otp.generateSecret(): Generate a new base32 TOTP secret (store this per-user)
+ *          - utils.otp.generateToken(secret): Get the current 6-digit TOTP code for a secret
+ *          - utils.otp.verifyToken(secret, token): Verify a user-supplied token (returns boolean)
+ *          - utils.otp.totpURI(secret, label, issuer?): Get an otpauth:// URI for QR code setup
  */
 
 // Put your imports here
@@ -46,7 +51,7 @@
  */
 export async function handleFunctionName(req, res, utils, vars = {}) {
     // Utilities available to be used inside handlers
-    const { logger, pushover, axiosErr } = utils;
+    const { logger, pushover, axiosErr, otp } = utils;
 
     try {
         // Log incoming request data
